@@ -1,5 +1,5 @@
 import {describe,it,expect} from "vitest";
-import {applicableItems,defaultSituation,delayBand,mergeItemProgress,resolveFlightConflict} from "@/lib/journey";
+import {applicableItems,applyManualSituation,defaultSituation,delayBand,mergeItemProgress,resolveFlightConflict} from "@/lib/journey";
 import {facilityEmptyReason,parseFacilities,recommendFacilities,safeVisitMinutes} from "@/lib/facilities";
 import {createDemoFlight} from "@/lib/demo";
 
@@ -7,6 +7,7 @@ describe("상황별 체크리스트",()=>{
   it.each([[20,"normal"],[45,"30-59"],[90,"60-119"],[150,"120-239"],[240,"240-plus"]] as const)("%i분 구간",(minutes,band)=>expect(delayBand({...defaultSituation,status:"delayed",delayMinutes:minutes})).toBe(band));
   it.each([0,20] as const)("%i분에는 예약·보험·수하물 추가 행동을 표시하지 않는다",minutes=>{const items=applicableItems({...defaultSituation,status:minutes===0?"normal":"delayed",delayMinutes:minutes,baggage:true,connection:true,hotel:true,transport:true,insurance:true});expect(items.map(item=>item.id)).toEqual(["check-time","documents","gate-walk","alerts"]);});
   it("30분 지연부터 선택한 여행 조건의 추가 행동을 표시한다",()=>{const ids=applicableItems({...defaultSituation,status:"delayed",delayMinutes:30,baggage:true,connection:true,hotel:true,insurance:true}).map(item=>item.id);expect(ids).toEqual(expect.arrayContaining(["bag-status","bag-tag","insured-proof","booking-policy","booking-contact","transfer-minimum"]));});
+  it("정상 선택과 지연시간 직접 입력이 모순되지 않도록 맞춘다",()=>{const delayed=applyManualSituation(defaultSituation,{delayMinutes:45});expect(delayed.status).toBe("delayed");expect(delayBand(delayed)).toBe("30-59");const normal=applyManualSituation(delayed,{status:"normal"});expect(normal.delayMinutes).toBe(0);expect(applicableItems({...normal,baggage:true,insurance:true,hotel:true}).map(item=>item.id)).toEqual(["check-time","documents","gate-walk","alerts"]);});
   it("결항과 위탁수하물 항목을 우선하고 완료 기록을 유지한다",()=>{const active=applicableItems({...defaultSituation,status:"cancelled",delayMinutes:120,baggage:true});expect(active[0].id).toBe("cancel-choice");expect(active.some(i=>i.id==="cancel-baggage")).toBe(true);expect(mergeItemProgress({"save-screen":true},active)["save-screen"]).toBe(true);});
   it("환승·보험·이동지원 조건을 반영한다",()=>{const items=applicableItems({...defaultSituation,status:"delayed",delayMinutes:90,connection:true,insurance:true,accessibility:true});expect(items.map(i=>i.id)).toEqual(expect.arrayContaining(["transfer-minimum","insured-proof","support-route"]));});
   it("서버와 수동 입력의 충돌을 표시한다",()=>{const flight=createDemoFlight("delay-3h","departure");expect(resolveFlightConflict(flight,{status:"cancelled",delayMinutes:180}).conflict).toBe(true);});
