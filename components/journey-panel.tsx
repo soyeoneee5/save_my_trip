@@ -21,7 +21,7 @@ const format = (value: string | null | undefined) => value ? new Date(value).toL
 
 function liveDetail(item: ChecklistItem, flight: FlightRecord | null, previousGate?: string | null) {
   if (!flight) return null;
-  if (item.id === "changed-time" || item.id === "check-time") return `공항 조회값: 예정 ${formatApiDatetime(flight.scheduleDatetime)} · 변경 ${formatApiDatetime(flight.estimatedDatetime)} · 조회 ${format(flight.lastUpdatedAt)}`;
+  if (item.id === "changed-time" || item.id === "check-time") return `예정 ${formatApiDatetime(flight.scheduleDatetime)} → 변경 ${formatApiDatetime(flight.estimatedDatetime)}`;
   if (item.id === "changed-gate") return `공항 조회값: 현재 게이트 ${flight.gate}${previousGate && previousGate !== flight.gate ? ` · 이전 조회 게이트 ${previousGate}` : ""} · 조회 ${format(flight.lastUpdatedAt)}`;
   if (item.id === "cancel-route") return `현재 편: ${flight.flightId} · ${flight.terminal} · 게이트 ${flight.gate}. 대체편 정보는 항공사에서 별도 확인하세요.`;
   return null;
@@ -158,7 +158,7 @@ export function JourneyPanel({ liveFlight, onSituationChange, onRefreshFlight, r
             <label><input type="checkbox" checked={!!progress[item.id]} onChange={e => setSaved(prev => ({ ...prev, progress: { ...prev.progress, [item.id]: e.target.checked } }))} /><span>{item.title}{item.needsConnection && !online && <small> · 인터넷 연결 후 확인</small>}</span></label>
             <p><strong>어디서</strong> {item.where}</p>
             <p><strong>어떻게</strong> {item.how}</p>
-            {liveDetail(item, flight, saved.previousGate) && <p className="action-live">{liveDetail(item, flight, saved.previousGate)}</p>}
+            {liveDetail(item, flight, saved.previousGate) && <p className="action-live"><span>{liveDetail(item, flight, saved.previousGate)}</span>{(item.id === "changed-time" || item.id === "check-time") && flight && <span className="action-live-updated">조회시간 {format(flight.lastUpdatedAt)}</span>}</p>}
             {item.officialUrl && (online ? <a className="action-official" href={item.officialUrl} target="_blank" rel="noreferrer">공식 안내 열기 <ExternalLink size={14} /></a> : <p>공식 링크는 인터넷 연결 후 이용할 수 있습니다.</p>)}
             <input aria-label={`${item.title} 메모`} placeholder="메모 추가" value={saved.notes[item.id] ?? ""} onChange={e => setSaved(prev => ({ ...prev, notes: { ...prev.notes, [item.id]: e.target.value } }))} />
           </div>)}
