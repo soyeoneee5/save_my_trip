@@ -286,7 +286,7 @@ export function FlightRescue() {
       <section className="hero" aria-labelledby="hero-title">
         <div className="hero-inner">
           <nav className="hero-nav" aria-label="주요 메뉴">
-            <a className="brand" href="#top"><span className="brand-mark"><Plane size={20} aria-hidden="true" /></span> Flight Rescue<span className="brand-dot">.</span></a>
+            <a className="brand" href="#top"><span className="brand-mark"><Plane size={20} aria-hidden="true" /></span> Save my Trip<span className="brand-dot">.</span></a>
             <div className="hero-nav-links"><a href="#search-title">항공편 검색</a><a href="#journey-title">맞춤 대응</a><a href="#official-title">공식 정보</a></div>
             <a className="hero-nav-cta" href="#search-title">운항 조회 <ArrowRight size={16} aria-hidden="true" /></a>
           </nav>
@@ -425,12 +425,12 @@ export function FlightRescue() {
               <a className="official-link" href="https://www.airport.kr/" target="_blank" rel="noreferrer">인천국제공항 공식 홈페이지 <ExternalLink size={16} /></a>
               <a className="official-link" href="https://www.consumer.go.kr/" target="_blank" rel="noreferrer">소비자24 <ChevronRight size={17} /></a>
             </div>
-            <div className="notice"><AlertCircle size={17} aria-hidden="true" /><span>Flight Rescue는 정보 확인을 돕는 서비스이며 보험금 자동 판정이나 법률 자문을 제공하지 않습니다. 실제 보상은 항공사·보험사의 심사와 개별 약관에 따릅니다.</span></div>
+            <div className="notice"><AlertCircle size={17} aria-hidden="true" /><span>Save my Trip은 정보 확인을 돕는 서비스이며 보험금 자동 판정이나 법률 자문을 제공하지 않습니다. 실제 보상은 항공사·보험사의 심사와 개별 약관에 따릅니다.</span></div>
           </section>
         </div>
       </div>
 
-      <footer className="footer">Flight Rescue · 인천공항 국제선 여객기 지연·결항 대응 가이드 <ArrowRight size={13} style={{ display: "inline", verticalAlign: "-2px" }} /></footer>
+      <footer className="footer">Save my Trip · 인천공항 국제선 여객기 지연·결항 대응 가이드 <ArrowRight size={13} style={{ display: "inline", verticalAlign: "-2px" }} /></footer>
     </main>
   );
 }
