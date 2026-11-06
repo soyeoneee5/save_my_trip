@@ -421,7 +421,7 @@ export function FlightRescue() {
         <div className="guide-stack" style={{ marginTop: 18 }}>
           <section className="guide-section" aria-labelledby="compensation-title">
             <div className="guide-head"><span className="guide-icon"><BadgeCheck size={21} /></span><div><p className="section-kicker">Airline</p><h2 id="compensation-title">항공사 보상 확인</h2></div></div>
-            {currentSituation.status !== "cancelled" && currentSituation.delayMinutes < 120 ? <><h3>현재 단계에서 준비할 보상 서류는 없어요</h3><p>현재 지연시간만으로 일반적인 보상 대상이라고 안내하기 어렵습니다. 항공사 정책, 지연 원인, 노선, 출발 국가, 여행자보험 약관에 따라 달라질 수 있어요.</p><p>지연시간이 늘어나면 필요한 서류와 대응 항목을 다시 안내해 드릴게요.</p></> : <p>보상 가능성이 있습니다. 항공사의 지연 사유와 귀책 여부를 먼저 확인하세요.</p>}
+            {currentSituation.status !== "cancelled" && currentSituation.delayMinutes < 120 ? <><h3 className="compensation-empty-title">현재 단계에서 준비할 보상 서류는 없어요</h3><p>현재 지연시간만으로 일반적인 보상 대상이라고 안내하기 어렵습니다. 항공사 정책, 지연 원인, 노선, 출발 국가, 여행자보험 약관에 따라 달라질 수 있어요.</p><p>지연시간이 늘어나면 필요한 서류와 대응 항목을 다시 안내해 드릴게요.</p></> : <p>보상 가능성이 있습니다. 항공사의 지연 사유와 귀책 여부를 먼저 확인하세요.</p>}
             {consumerDisputeRate(currentSituation) && <div className="compensation-rate">한국 국제여객 소비자분쟁해결기준 참고 · {consumerDisputeRate(currentSituation)}</div>}
             <div className="notice"><Info size={17} aria-hidden="true" /><span>이 기준은 자동 지급되는 확정 보상금이 아니라 분쟁 해결을 위한 기준입니다. 기상, 공항 사정, 안전운항 조치 등으로 보상이 제한될 수 있습니다.</span></div>
           </section>
