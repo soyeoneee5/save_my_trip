@@ -178,6 +178,7 @@ body { background: var(--light-grey-bg); color: var(--dark-text); font-family: v
 .action-check p { margin: 6px 0 0 27px; color: #5e6a76; font-size: .78rem; }
 .action-check p strong { color: #303d48; }
 .action-check .action-live { padding: 8px; border-radius: 4px; background: #edf5ff; color: #0754a1; font-weight: 700; }
+.action-check .action-live-updated { display: block; margin-top: 4px; color: var(--muted); font-size: .78rem; font-weight: 400; }
 .action-official { display: inline-flex; align-items: center; gap: 4px; margin: 7px 0 0 27px; color: #0068d7; font-size: .78rem; font-weight: 750; text-decoration: underline; }
 .facility-map-panel { display: flex; gap: 10px; margin-top: 16px; padding: 15px; border: 1px solid #cfe0ef; border-radius: 4px; background: #f5faff; }
 .facility-map-panel > svg { flex: none; color: #007bff; }
