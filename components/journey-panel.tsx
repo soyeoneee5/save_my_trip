@@ -19,9 +19,8 @@ const terminalLabels: Record<string, string> = { P01: "제1터미널", P02: "탑
 const zoneLabels = { public: "일반구역", airside: "면세구역", unknown: "구역 확인 필요" };
 const format = (value: string | null | undefined) => value ? new Date(value).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }) : "없음";
 
-function liveDetail(item: ChecklistItem, flight: FlightRecord | null, previousGate?: string | null) {
+function liveDetail(item: ChecklistItem, flight: FlightRecord | null) {
   if (!flight) return null;
-  if (item.id === "changed-gate") return `공항 조회값: 현재 게이트 ${flight.gate}${previousGate && previousGate !== flight.gate ? ` · 이전 조회 게이트 ${previousGate}` : ""} · 조회 ${format(flight.lastUpdatedAt)}`;
   if (item.id === "cancel-route") return `현재 편: ${flight.flightId} · ${flight.terminal} · 게이트 ${flight.gate}. 대체편 정보는 항공사에서 별도 확인하세요.`;
   return null;
 }
@@ -161,7 +160,7 @@ export function JourneyPanel({ liveFlight, onSituationChange, onRefreshFlight, r
               <span>예정 {formatApiDatetime(flight.scheduleDatetime)} → 변경 <span className={flight.estimatedDatetime && flight.estimatedDatetime !== flight.scheduleDatetime ? "action-live-changed" : undefined}>{formatApiDatetime(flight.estimatedDatetime)}</span></span>
               {item.id === "check-time" && <span className="action-live-gate">탑승구 {flight.gate || "확인 필요"}</span>}
               <span className="action-live-updated">조회시간 {format(flight.lastUpdatedAt)}</span>
-            </p> : liveDetail(item, flight, saved.previousGate) && <p className="action-live">{liveDetail(item, flight, saved.previousGate)}</p>}
+            </p> : item.id === "changed-gate" && flight ? <p className="action-live"><span>현재 게이트 {flight.gate}{saved.previousGate && saved.previousGate !== flight.gate ? ` · 이전 조회 게이트 ${saved.previousGate}` : ""}</span><span className="action-live-updated">조회시간 {format(flight.lastUpdatedAt)}</span></p> : liveDetail(item, flight) && <p className="action-live">{liveDetail(item, flight)}</p>}
             {item.officialUrl && (online ? <a className="action-official" href={item.officialUrl} target="_blank" rel="noreferrer">공식 안내 열기 <ExternalLink size={14} /></a> : <p>공식 링크는 인터넷 연결 후 이용할 수 있습니다.</p>)}
             <input aria-label={`${item.title} 메모`} placeholder="메모 추가" value={saved.notes[item.id] ?? ""} onChange={e => setSaved(prev => ({ ...prev, notes: { ...prev.notes, [item.id]: e.target.value } }))} />
           </div>)}
