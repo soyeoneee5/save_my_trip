@@ -1,0 +1,18 @@
+import {describe,it,expect} from "vitest";
+import {applicableItems,defaultSituation,delayBand,mergeItemProgress,resolveFlightConflict} from "@/lib/journey";
+import {parseFacilities,recommendFacilities,safeVisitMinutes} from "@/lib/facilities";
+import {createDemoFlight} from "@/lib/demo";
+
+describe("상황별 체크리스트",()=>{
+  it.each([[20,"normal"],[45,"30-59"],[90,"60-119"],[150,"120-239"],[240,"240-plus"]] as const)("%i분 구간",(minutes,band)=>expect(delayBand({...defaultSituation,status:"delayed",delayMinutes:minutes})).toBe(band));
+  it("결항과 위탁수하물 항목을 우선하고 완료 기록을 유지한다",()=>{const active=applicableItems({...defaultSituation,status:"cancelled",delayMinutes:120,baggage:true});expect(active[0].id).toBe("cancel-choice");expect(active.some(i=>i.id==="cancel-baggage")).toBe(true);expect(mergeItemProgress({"save-screen":true},active)["save-screen"]).toBe(true);});
+  it("환승·보험·이동지원 조건을 반영한다",()=>{const items=applicableItems({...defaultSituation,status:"delayed",delayMinutes:90,connection:true,insurance:true,accessibility:true});expect(items.map(i=>i.id)).toEqual(expect.arrayContaining(["transfer-minimum","insured-proof","support-route"]));});
+  it("서버와 수동 입력의 충돌을 표시한다",()=>{const flight=createDemoFlight("delay-3h","departure");expect(resolveFlightConflict(flight,{status:"cancelled",delayMinutes:180}).conflict).toBe(true);});
+});
+describe("시설 파싱과 보수적 추천",()=>{const now=new Date("2026-11-03T01:00:00Z");const flight=createDemoFlight("delay-3h","departure",now);const parsed=parseFacilities({response:{header:{resultCode:"00"},body:{totalCount:2,items:{item:[{sn:"1",facilitynm:"카페",lcategorynm:"카페",terminalid:"G01",floorinfo:"3F",lcduty:"Y",servicetime:"24시간",lcnm:"탑승동"},{sn:"2",facilitynm:"화물식당",lcategorynm:"식당",terminalid:"C01",lcduty:"Y",servicetime:"24시간"}]}}}},now.toISOString()).facilities;
+  it("시설 API 필드를 정규화하고 화물터미널을 제외한다",()=>{expect(parsed).toHaveLength(1);expect(parsed[0]).toMatchObject({terminal:"P02",zone:"airside",free:"unknown"});});
+  it("이동시간을 몰라도 출발 40분 전 복귀 여유가 있으면 후보를 보여준다",()=>{const s={...defaultSituation,status:"delayed" as const,delayMinutes:180,location:"airside" as const,preference:"cafe" as const};expect(safeVisitMinutes(flight,s,now)).toBeNull();expect(recommendFacilities(parsed,flight,s,now)).toHaveLength(1);});
+  it("입력한 왕복 이동시간을 반영하고 시간이 부족하면 제외한다",()=>{const s={...defaultSituation,status:"delayed" as const,delayMinutes:180,location:"airside" as const,preference:"cafe" as const,outboundMinutes:5,returnMinutes:5};expect(safeVisitMinutes(flight,s,now)).toBeGreaterThan(15);expect(recommendFacilities(parsed,flight,s,now)).toHaveLength(1);expect(recommendFacilities(parsed,flight,{...s,outboundMinutes:220,returnMinutes:220},now)).toHaveLength(0);});
+  it("출발 40분 전 복귀를 지킬 여유가 없으면 이동시간 미입력 시에도 추천하지 않는다",()=>{const s={...defaultSituation,status:"delayed" as const,location:"airside" as const};expect(recommendFacilities(parsed,{...flight,estimatedDatetime:"202611031055"},s,now)).toHaveLength(0);});
+  it("탑승 임박 또는 기내이면 방문 추천을 제한한다",()=>{const s={...defaultSituation,location:"onboard" as const,outboundMinutes:5,returnMinutes:5};expect(recommendFacilities(parsed,flight,s,now)).toHaveLength(0);});
+});
