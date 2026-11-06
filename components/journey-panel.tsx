@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, ChevronLeft, ChevronRight, CloudOff, ExternalLink, List, MapPin, Plane, RefreshCw, Wifi } from "lucide-react";
 import { applicableItems, checklistCatalog, defaultSituation, flightStatus, mergeItemProgress, resolveFlightConflict, type ChecklistItem, type Situation } from "@/lib/journey";
-import { minutesUntilDeparture, recommendFacilities, safeVisitMinutes, type Facility } from "@/lib/facilities";
+import { facilityEmptyReason, minutesUntilDeparture, recommendFacilities, safeVisitMinutes, type Facility } from "@/lib/facilities";
 import { formatApiDatetime } from "@/lib/flight";
 import { statusTone, statusToneLabel } from "@/lib/status";
 import type { FlightRecord } from "@/lib/types";
@@ -175,7 +175,7 @@ export function JourneyPanel({ liveFlight, onSituationChange, onRefreshFlight, r
         {s.location !== "onboard" && visits.length > 0 && <div className="journey-alert">출발 {s.cutoffMinutes}분 전까지 탑승구로 이동하세요. 이동시간을 입력하지 않았다면 시설까지의 동선과 복귀시간을 직접 확인하고, 시간이 부족하면 방문하지 마세요.</div>}
         {s.location !== "onboard" && visits.length === 0 && flight?.direction === "departure" && s.status !== "cancelled" && (until === null || until <= s.cutoffMinutes + 15 || safe !== null && safe < 15) && <div className="journey-alert">출발이 임박했거나 복귀 가능 시간을 확인할 수 없습니다. 시설 방문보다 탑승구 대기를 권합니다.</div>}
         {visits.map(({ facility: f, reason }, index) => <article className="facility-card" key={f.id}><strong>{["같은 구역의 추천 후보", "다른 종류의 시설", "선호에 맞는 시설"][index]} · {f.name}</strong><p>{f.category} · {terminalLabels[f.terminal] ?? f.terminal} {f.floor} · {zoneLabels[f.zone]}</p><p>운영시간 {f.hours} · 무료·유료 여부 확인 필요 · 이동시간: {s.outboundMinutes === null ? "확인 필요" : `직접 입력한 예상 ${s.outboundMinutes}분`}</p><p>추천 이유: {reason}. 위치: {f.location}</p><p>탑승구 복귀 권장: {s.returnMinutes === null ? `출발 ${s.cutoffMinutes}분 전까지 탑승구로 이동 (복귀시간 확인 필요)` : `시설에서 출발 ${s.cutoffMinutes + s.safetyMinutes + s.returnMinutes}분 전까지 이동 시작`} · 시설정보 조회 {format(f.updatedAt)}</p></article>)}
-        {visits.length === 0 && flight?.direction === "departure" && s.status !== "cancelled" && (safe === null ? until !== null && until > s.cutoffMinutes + 15 : safe >= 15) && s.location !== "onboard" && <p>현재 조건에 맞는 시설을 찾지 못했습니다. 구역과 운영시간을 확인해 주세요.</p>}
+        {visits.length === 0 && flight?.direction === "departure" && s.status !== "cancelled" && (safe === null ? until !== null && until > s.cutoffMinutes + 15 : safe >= 15) && s.location !== "onboard" && <p>{facilityEmptyReason(saved.facilities, flight, s)}</p>}
         <div className="facility-map-panel"><MapPin size={19} /><div><strong>공항 공식 지도에서 위치 확인</strong><p>시설의 터미널·층·구역·위치 설명을 지도와 대조하세요. 시설 API는 정확한 좌표와 이동시간을 제공하지 않습니다.</p>{online ? <a href={AIRPORT_MAP} target="_blank" rel="noreferrer">인천공항 공식 지도 열기 <ExternalLink size={14} /></a> : <small>공식 지도는 인터넷 연결 후 열 수 있습니다.</small>}</div></div>
         <p className="section-copy">정확한 거리·혼잡도·가격·입장 조건은 API에서 제공되지 않습니다. 시설 방문 전 공식 안내를 확인하세요.</p><button className="journey-next" type="button" onClick={() => void sync()} disabled={!online || syncing || refreshingFlight}><RefreshCw size={16} /> {syncing || refreshingFlight ? "동기화 중" : "최신 정보 동기화"}</button><p>시설 마지막 동기화 {format(saved.facilitySyncedAt)} · 운항 마지막 동기화 {format(saved.syncedAt)}</p>{!online && <p>인터넷 연결이 없어 동기화할 수 없습니다.</p>}{error && <div className="status-message error" role="alert"><AlertTriangle size={18} /><p>{error} 다시 시도할 수 있습니다.</p></div>}
       </section></div>
