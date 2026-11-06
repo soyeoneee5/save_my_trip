@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, ChevronLeft, ChevronRight, CloudOff, ExternalLink, List, MapPin, Plane, RefreshCw, Wifi } from "lucide-react";
-import { applicableItems, checklistCatalog, defaultSituation, flightStatus, mergeItemProgress, resolveFlightConflict, type ChecklistItem, type Situation } from "@/lib/journey";
+import { applicableItems, applyManualSituation, checklistCatalog, defaultSituation, flightStatus, mergeItemProgress, resolveFlightConflict, type ChecklistItem, type Situation } from "@/lib/journey";
 import { facilityEmptyReason, minutesUntilDeparture, recommendFacilities, safeVisitMinutes, type Facility } from "@/lib/facilities";
 import { formatApiDatetime } from "@/lib/flight";
 import { statusTone, statusToneLabel } from "@/lib/status";
@@ -96,7 +96,7 @@ export function JourneyPanel({ liveFlight, onSituationChange, onRefreshFlight, r
   const tone = statusTone(s.status === "cancelled" ? "결항" : "지연", s.delayMinutes);
 
   function update(patch: Partial<Situation>) { setSaved(prev => ({ ...prev, situation: { ...prev.situation, ...patch } })); setCompletion(null); }
-  function manualUpdate(patch: NonNullable<Manual>) { setSaved(prev => ({ ...prev, manual: { ...prev.manual, ...patch }, situation: { ...prev.situation, ...patch } })); setCompletion(null); }
+  function manualUpdate(patch: NonNullable<Manual>) { setSaved(prev => { const situation = applyManualSituation(prev.situation, patch); return { ...prev, manual: { ...prev.manual, status: situation.status, delayMinutes: situation.delayMinutes }, situation }; }); setCompletion(null); }
   const fetchFacilities = useCallback(async () => {
     if (!navigator.onLine || facilityInFlight.current) return;
     facilityInFlight.current = true;
