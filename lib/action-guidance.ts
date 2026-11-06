@@ -11,9 +11,9 @@ const guidance: Record<string, ActionGuidance> = {
   "airline-message": { where: airline, how: "항공사의 지연 사유·예상시각 안내를 확인하고 화면을 저장하세요." },
   "alerts": { where: "이용 항공사 앱·문자 알림", how: "예약에 등록된 연락처와 알림 설정을 확인하세요." },
   "documents": { where: "휴대전화 또는 소지한 여행 서류", how: "탑승권, 여권과 예약 정보를 바로 꺼낼 수 있게 준비하세요." },
-  "later-plans": { where: "연결편 예약 화면과 이후 일정", how: "변경된 시각을 기준으로 환승·예약 여유를 확인하세요." },
+  "later-plans": { where: "이후 일정·예약 화면", how: "변경된 시각을 기준으로 다음 일정의 여유를 확인하세요." },
   "short-facility": { where: "현재 구역의 시설 목록과 공항 지도", how: "복귀 시간을 먼저 확인하고 가까운 시설만 살펴보세요.", officialUrl: map },
-  "connection-impact": { where: "연결편 예약 화면과 이용 항공사", how: "새 도착 예상시각과 연결편 출발시각을 비교하세요." },
+  "connection-impact": { where: "이후 일정·예약 화면", how: "변경된 시각이 다음 예약에 영향을 주는지 확인하세요." },
   "meal-rest": { where: "아래 시설 추천과 공항 공식 지도", how: "현재 위치와 같은 구역의 시설을 고르고 복귀 시간을 확인하세요.", officialUrl: map },
   "save-screen": { where: "항공사 앱·문자와 이 화면", how: "편명, 예정·변경시각, 조회 시각이 보이도록 화면을 저장하세요." },
   "meal-support": { where: airline, how: "식사·통신 등 현장 지원 가능 여부와 제공 위치를 문의하세요." },
@@ -29,7 +29,7 @@ const guidance: Record<string, ActionGuidance> = {
   "transfer-arrival": { where: "항공사 앱과 공항 도착편 정보", how: "변경된 도착 예상시각이 표시되는지 확인하고 연결편 시각과 비교하세요." },
   "transfer-minimum": { where: "연결편 항공사 또는 환승 데스크", how: "터미널 이동과 보안검색 시간을 포함해 최소 환승 가능시간을 문의하세요." },
   "transfer-flight": { where: "연결편 항공사 앱 또는 공항 운항정보", how: "연결편 편명으로 출발시각과 탑승구를 확인하세요." },
-  "alternate": { where: airline, how: "예약번호와 편명을 준비해 가능한 대체편, 연결편 영향, 비용을 문의하세요." },
+  "alternate": { where: airline, how: "예약번호와 편명을 준비해 가능한 대체편과 비용을 문의하세요." },
   "refund": { where: airline, how: "미사용 구간의 환불 가능 여부와 대체편 조건을 함께 확인하세요." },
   "cancel-choice": { where: airline, how: "대체편과 미사용 구간 환불 조건을 비교하고 접수 내역을 저장하세요." },
   "cancel-route": { where: airline, how: "대체편의 편명·출발시각·터미널·게이트를 서면이나 화면으로 확인하세요." },
@@ -49,9 +49,9 @@ const guidance: Record<string, ActionGuidance> = {
   "booking-policy": { where: "숙소·교통 예약 앱 또는 고객센터", how: "무료 변경·취소 기한과 수수료 조건을 확인하세요." },
   "booking-contact": { where: "숙소·교통 예약 업체", how: "지연·결항 사실을 전달하고 변경 내역과 수수료 영수증을 저장하세요." },
   "support-request": { where: "이용 항공사 또는 공항 안내데스크", how: "필요한 이동지원과 현재 위치를 알리고 가능한 지원을 문의하세요." },
-  "crew-first": { where: "기내 승무원 안내", how: "안전 안내와 하선·환승 안내를 우선 따르세요." },
-  "onboard-time": { where: "기내 안내 또는 항공사 앱의 저장된 정보", how: "인터넷 연결이 되면 최신 출발·도착시각과 연결편을 다시 확인하세요." },
-  "after-landing": { where: "도착 공항의 항공사·환승 데스크", how: "착륙 후 연결편과 수하물 처리 창구를 확인하세요." },
+  "crew-first": { where: "기내 승무원 안내", how: "안전 안내와 하선 안내를 우선 따르세요." },
+  "onboard-time": { where: "기내 안내 또는 항공사 앱의 저장된 정보", how: "인터넷 연결이 되면 최신 출발·도착시각을 다시 확인하세요." },
+  "after-landing": { where: "도착 공항의 항공사 데스크", how: "착륙 후 운항 변경이나 수하물 처리 창구를 확인하세요." },
 };
 
 export function guidanceFor(id: string): ActionGuidance {
