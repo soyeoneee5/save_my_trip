@@ -14,12 +14,14 @@ export type Situation = {
 export const defaultSituation: Situation = { direction:"departure",location:"travel",status:"normal",delayMinutes:0,baggage:false,connection:false,hotel:false,transport:false,insurance:false,child:false,senior:false,pregnant:false,accessibility:false,preference:"rest",freeFirst:true,outboundMinutes:null,returnMinutes:null,cutoffMinutes:40,safetyMinutes:20 };
 export function delayBand(s: Situation): DelayBand {
   if(s.status === "cancelled") return "cancelled";
+  if(s.status === "normal") return "normal";
   if(s.delayMinutes < 30) return "normal";
   if(s.delayMinutes < 60) return "30-59";
   if(s.delayMinutes < 120) return "60-119";
   if(s.delayMinutes < 240) return "120-239";
   return "240-plus";
 }
+export function applyManualSituation(s:Situation,patch:Partial<Pick<Situation,"status"|"delayMinutes">>):Situation{const next={...s,...patch};if(patch.status==="normal")next.delayMinutes=0;if(patch.delayMinutes!==undefined&&patch.delayMinutes>=30&&next.status==="normal")next.status="delayed";return next;}
 export type ChecklistItem = { id:string; title:string; detail:string; where:string; how:string; officialUrl?:string; statuses:Situation["status"][]; bands:DelayBand[]; locations:Location[]; directions:Situation["direction"][]; baggage?:boolean; connection?:boolean; hotelOrTransport?:boolean; insurance?:boolean; accessibility?:boolean; priority:number; required:boolean; offline:boolean; needsConnection:boolean };
 const ALL_LOCATIONS: Location[]=["travel","checkin","airside","gate","onboard","arrival"];
 const ALL_DIRECTIONS: Situation["direction"][]=["departure","arrival","transfer"];
