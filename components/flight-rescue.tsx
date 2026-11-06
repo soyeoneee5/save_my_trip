@@ -21,74 +21,40 @@ import {
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createDemoFlight, DEMO_OPTIONS, type DemoScenario } from "@/lib/demo";
 import { JourneyPanel } from "@/components/journey-panel";
-import { formatApiDatetime, normalizeFlightId } from "@/lib/flight";
+import { classifyResponseStage, formatApiDatetime, normalizeFlightId } from "@/lib/flight";
 import { consumerDisputeRate, evidenceCatalog, evidenceForSituation } from "@/lib/evidence";
-import { defaultSituation, flightStatus, type Situation } from "@/lib/journey";
+import { defaultSituation, flightStatus, immediateItems, type Situation } from "@/lib/journey";
 import { statusTone, statusToneLabel } from "@/lib/status";
 import { isTrackableFlight, shouldRefreshFlight, FLIGHT_REFRESH_INTERVAL_MS } from "@/lib/refresh";
 import type { FlightDirection, FlightRecord, FlightSearchResponse, ResponseStage } from "@/lib/types";
 
 const STAGE_CONTENT: Record<
   ResponseStage,
-  { label: string; title: string; actions: string[]; rate: string | null }
+  { label: string; title: string }
 > = {
   check: {
     label: "운항정보 확인 단계",
     title: "변경 정보부터 차분히 확인하세요",
-    actions: ["변경된 출발시간과 게이트 확인", "항공사 알림 확인", "영수증 보관 시작"],
-    rate: null,
   },
   "index-insurance": {
     label: "보상 가능성 및 지수형 보험 확인 단계",
     title: "지연 증빙을 확보하고 보상 조건을 확인하세요",
-    actions: [
-      "항공사에 지연 사유 확인",
-      "지연확인서 발급 요청",
-      "지수형 여행자보험 특약 확인",
-      "한국 소비자분쟁해결기준상 보상 가능성 안내 확인",
-    ],
-    rate: "해당 구간 운임의 10% 배상 검토",
   },
   "expense-insurance": {
     label: "항공사 보상 및 실비형 보험 확인 단계",
     title: "현장 지원을 요청하고 실제 지출을 기록하세요",
-    actions: [
-      "항공사에 식사·교통·통신 지원 요청",
-      "여행자보험 실비형 특약 확인",
-      "관련 영수증 보관",
-      "대체편과 환불 조건 확인",
-    ],
-    rate: "해당 구간 운임의 20% 배상 검토",
   },
   "long-delay": {
     label: "장시간 지연 대응 단계",
     title: "대체 일정과 숙박 지원을 함께 검토하세요",
-    actions: [
-      "대체편 또는 환불 요청",
-      "숙박과 교통 지원 여부 확인",
-      "항공사와 보험사 청구 서류 준비",
-      "여행 일정과 예약 변경 검토",
-    ],
-    rate: "해당 구간 운임의 30% 배상 검토",
   },
   cancelled: {
     label: "대체편·환불·보험 확인 단계",
     title: "대체편과 환불 조건을 우선 확인하세요",
-    actions: [
-      "항공사에 대체편 또는 미사용 구간 환불 요청",
-      "결항확인서 발급",
-      "대체편 제공 예정시간 확인",
-      "식사·숙박·교통비 영수증 보관",
-      "여행자보험의 결항 특약 확인",
-      "항공사 귀책사유와 면책사유 확인",
-    ],
-    rate: null,
   },
   unknown: {
     label: "운항정보 확인 단계",
     title: "변경시간을 항공사에서 확인해 주세요",
-    actions: ["항공사 앱·문자에서 변경시간 확인", "공항 전광판과 탑승구 확인", "지연 시각이 확인되면 증빙 화면 저장"],
-    rate: null,
   },
 };
 
@@ -214,6 +180,8 @@ export function FlightRescue() {
   const selected = flights[0] ?? null;
   const stage = STAGE_CONTENT[selected?.stage ?? "check"];
   const currentSituation = useMemo(() => evidenceSituation ?? (selected ? { ...defaultSituation, status: flightStatus(selected), delayMinutes: selected.delayMinutes ?? 0 } : defaultSituation), [evidenceSituation, selected]);
+  const actionStage = STAGE_CONTENT[classifyResponseStage(currentSituation.delayMinutes, currentSituation.status === "cancelled" ? "결항" : "지연")];
+  const actionItems = useMemo(() => immediateItems(currentSituation), [currentSituation]);
   const evidenceItems = useMemo(() => evidenceForSituation(currentSituation), [currentSituation]);
 
   const refreshFlight = useCallback(async (force = false) => {
@@ -405,8 +373,8 @@ export function FlightRescue() {
                 </section>
                 <section className="guide-section" aria-labelledby="action-title">
                   <div className="guide-head"><span className="guide-icon"><ClipboardCheck size={21} /></span><div><p className="section-kicker">Action now</p><h2 id="action-title">지금 해야 할 행동</h2></div></div>
-                  <h3>{stage.title}</h3>
-                  <ol className="action-list">{stage.actions.map((action, index) => <li key={action}><span className="number">{index + 1}</span><span>{action}</span></li>)}</ol>
+                  <h3>{actionStage.title}</h3>
+                  <ol className="action-list">{actionItems.map((item, index) => <li key={item.id}><span className="number">{index + 1}</span><span>{item.title}</span></li>)}</ol>
                 </section>
               </div>
             </div>
