@@ -394,8 +394,8 @@ export function FlightRescue() {
             <div className="guide-head"><span className="guide-icon"><ShieldCheck size={21} /></span><div><p className="section-kicker">Insurance</p><h2 id="insurance-title">여행자보험 확인</h2></div></div>
             <p>가입한 보험 특약과 항공사 확인이 필요합니다.</p>
             <ul className="plain-list">
-              <li>일부 지수형 특약: 2시간 이상부터 보상 가능</li>
-              <li>일반적인 실비형 특약: 4시간 이상 지연 시 확인</li>
+              <li>일부 지수형 특약: 2시간 이상부터 보상 가능성 확인</li>
+              <li>실손형 특약: 일부 상품은 2시간 이상부터 실제 지출 비용을 청구할 수 있고, 다른 상품은 4시간 등 조건이 다릅니다. 가입 특약의 보장 시간·지출 항목·면책 조건을 확인하세요.</li>
               <li>결항: 출발 예정시각부터 4시간 이내 대체편 미제공 조건 등을 확인</li>
               <li>보험사와 상품마다 조건이 다르므로 약관 확인 필요</li>
             </ul>
