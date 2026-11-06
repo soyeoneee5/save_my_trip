@@ -24,6 +24,7 @@ describe("지연 상태 색상과 증빙 경계", () => {
     expect(cancel.map(item => item.id)).toEqual(expect.arrayContaining(["delay-certificate", "rebooking-refund", "bag-tag"]));
     expect(cancel.some(item => item.id === "hotel-receipt")).toBe(false);
   });
+  it("120분 실손형 보험에는 구체적인 청구 서류와 실제 지출 영수증을 표시한다",()=>{const base={...defaultSituation,status:"delayed" as const,delayMinutes:120,insurance:true,insuranceType:"expense" as const};const ids=evidenceForSituation(base).map(item=>item.id);expect(ids).toEqual(expect.arrayContaining(["ticket","boarding-pass","delay-certificate","insurance-policy","insurance-claim-form","insurance-expense-receipt"]));expect(evidenceForSituation({...base,delayMinutes:119})).toHaveLength(0);expect(evidenceForSituation({...base,insuranceType:"index"}).some(item=>item.id==="insurance-expense-receipt")).toBe(false);});
   it("보상 기준은 확정 판정 없이 경계별 검토 비율만 돌려준다", () => {
     expect(consumerDisputeRate({ ...defaultSituation, delayMinutes: 119 })).toBeNull();
     expect(consumerDisputeRate({ ...defaultSituation, delayMinutes: 120 })).toContain("10%");
