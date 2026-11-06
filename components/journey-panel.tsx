@@ -21,7 +21,6 @@ const format = (value: string | null | undefined) => value ? new Date(value).toL
 
 function liveDetail(item: ChecklistItem, flight: FlightRecord | null, previousGate?: string | null) {
   if (!flight) return null;
-  if (item.id === "changed-time" || item.id === "check-time") return `예정 ${formatApiDatetime(flight.scheduleDatetime)} → 변경 ${formatApiDatetime(flight.estimatedDatetime)}`;
   if (item.id === "changed-gate") return `공항 조회값: 현재 게이트 ${flight.gate}${previousGate && previousGate !== flight.gate ? ` · 이전 조회 게이트 ${previousGate}` : ""} · 조회 ${format(flight.lastUpdatedAt)}`;
   if (item.id === "cancel-route") return `현재 편: ${flight.flightId} · ${flight.terminal} · 게이트 ${flight.gate}. 대체편 정보는 항공사에서 별도 확인하세요.`;
   return null;
@@ -158,7 +157,11 @@ export function JourneyPanel({ liveFlight, onSituationChange, onRefreshFlight, r
             <label><input type="checkbox" checked={!!progress[item.id]} onChange={e => setSaved(prev => ({ ...prev, progress: { ...prev.progress, [item.id]: e.target.checked } }))} /><span>{item.title}{item.needsConnection && !online && <small> · 인터넷 연결 후 확인</small>}</span></label>
             <p><strong>어디서</strong> {item.where}</p>
             <p><strong>어떻게</strong> {item.how}</p>
-            {liveDetail(item, flight, saved.previousGate) && <p className="action-live"><span>{liveDetail(item, flight, saved.previousGate)}</span>{(item.id === "changed-time" || item.id === "check-time") && flight && <span className="action-live-updated">조회시간 {format(flight.lastUpdatedAt)}</span>}</p>}
+            {(item.id === "changed-time" || item.id === "check-time") && flight ? <p className="action-live">
+              <span>예정 {formatApiDatetime(flight.scheduleDatetime)} → 변경 <span className={flight.estimatedDatetime && flight.estimatedDatetime !== flight.scheduleDatetime ? "action-live-changed" : undefined}>{formatApiDatetime(flight.estimatedDatetime)}</span></span>
+              {item.id === "check-time" && <span className="action-live-gate">탑승구 {flight.gate || "확인 필요"}</span>}
+              <span className="action-live-updated">조회시간 {format(flight.lastUpdatedAt)}</span>
+            </p> : liveDetail(item, flight, saved.previousGate) && <p className="action-live">{liveDetail(item, flight, saved.previousGate)}</p>}
             {item.officialUrl && (online ? <a className="action-official" href={item.officialUrl} target="_blank" rel="noreferrer">공식 안내 열기 <ExternalLink size={14} /></a> : <p>공식 링크는 인터넷 연결 후 이용할 수 있습니다.</p>)}
             <input aria-label={`${item.title} 메모`} placeholder="메모 추가" value={saved.notes[item.id] ?? ""} onChange={e => setSaved(prev => ({ ...prev, notes: { ...prev.notes, [item.id]: e.target.value } }))} />
           </div>)}
@@ -170,12 +173,12 @@ export function JourneyPanel({ liveFlight, onSituationChange, onRefreshFlight, r
         </nav>}
         <details><summary>이전 항목과 완료 기록</summary>{checklistCatalog.filter(item => !active.some(a => a.id === item.id) && saved.progress[item.id]).map(item => <p key={item.id}>{item.title} · 완료</p>)}</details>
       </section>
-      <section className="guide-section journey-facilities-panel"><div className="guide-head"><span className="guide-icon"><MapPin size={21} /></span><div><p className="section-kicker">Airport facilities</p><h2>{s.location === "onboard" ? "3. 착륙 후 시설 미리보기" : "3. 지연 중 시설 추천"}</h2></div></div>{s.location === "onboard" ? <p>기내에서는 시설 방문이 불가능합니다. 착륙 후 터미널과 도착·환승 구역을 확인하세요. 아래 시설은 참고 정보입니다.</p> : <p>현재 터미널·이동 가능 구역·운영시간을 기준으로 추천합니다. 시설 정보는 월 1회 갱신되며 운영시간이 바뀔 수 있습니다.</p>}
+      <section className="guide-section journey-facilities-panel"><div className="guide-head"><span className="guide-icon"><MapPin size={21} /></span><div><p className="section-kicker">Airport facilities</p><h2>{s.location === "onboard" ? "3. 착륙 후 시설 미리보기" : "3. 대기 중 시설 추천"}</h2></div></div>{s.location === "onboard" ? <p>기내에서는 시설 방문이 불가능합니다. 착륙 후 터미널과 도착·환승 구역을 확인하세요. 아래 시설은 참고 정보입니다.</p> : <p>현재 터미널·이동 가능 구역·운영시간을 기준으로 추천합니다. 시설 정보는 월 1회 갱신되며 운영시간이 바뀔 수 있습니다.</p>}
         {arrivalPreview.map(f => <article className="facility-card" key={f.id}><strong>{f.name}</strong><p>{f.category} · {terminalLabels[f.terminal] ?? f.terminal} {f.floor} · {zoneLabels[f.zone]}</p><p>운영시간 {f.hours} · 위치 {f.location} · 시설정보 조회 {format(f.updatedAt)}</p></article>)}
         {s.location !== "onboard" && visits.length > 0 && <div className="journey-alert">출발 {s.cutoffMinutes}분 전까지 탑승구로 이동하세요. 이동시간을 입력하지 않았다면 시설까지의 동선과 복귀시간을 직접 확인하고, 시간이 부족하면 방문하지 마세요.</div>}
         {s.location !== "onboard" && visits.length === 0 && flight?.direction === "departure" && s.status !== "cancelled" && (until === null || until <= s.cutoffMinutes + 15 || safe !== null && safe < 15) && <div className="journey-alert">출발이 임박했거나 복귀 가능 시간을 확인할 수 없습니다. 시설 방문보다 탑승구 대기를 권합니다.</div>}
         {visits.map(({ facility: f, reason }, index) => <article className="facility-card" key={f.id}><strong>{["같은 구역의 추천 후보", "다른 종류의 시설", "선호에 맞는 시설"][index]} · {f.name}</strong><p>{f.category} · {terminalLabels[f.terminal] ?? f.terminal} {f.floor} · {zoneLabels[f.zone]}</p><p>운영시간 {f.hours} · 무료·유료 여부 확인 필요 · 이동시간: {s.outboundMinutes === null ? "확인 필요" : `직접 입력한 예상 ${s.outboundMinutes}분`}</p><p>추천 이유: {reason}. 위치: {f.location}</p><p>탑승구 복귀 권장: {s.returnMinutes === null ? `출발 ${s.cutoffMinutes}분 전까지 탑승구로 이동 (복귀시간 확인 필요)` : `시설에서 출발 ${s.cutoffMinutes + s.safetyMinutes + s.returnMinutes}분 전까지 이동 시작`} · 시설정보 조회 {format(f.updatedAt)}</p></article>)}
-        {visits.length === 0 && flight?.direction === "departure" && s.status !== "cancelled" && (safe === null ? until !== null && until > s.cutoffMinutes + 15 : safe >= 15) && s.location !== "onboard" && <p>{facilityEmptyReason(saved.facilities, flight, s)}</p>}
+        {visits.length === 0 && flight?.direction === "departure" && s.status !== "cancelled" && (safe === null ? until !== null && until > s.cutoffMinutes + 15 : safe >= 15) && s.location !== "onboard" && <p className="facility-empty-reason">{facilityEmptyReason(saved.facilities, flight, s)}</p>}
         <div className="facility-map-panel"><MapPin size={19} /><div><strong>공항 공식 지도에서 위치 확인</strong><p>시설의 터미널·층·구역·위치 설명을 지도와 대조하세요. 시설 API는 정확한 좌표와 이동시간을 제공하지 않습니다.</p>{online ? <a href={AIRPORT_MAP} target="_blank" rel="noreferrer">인천공항 공식 지도 열기 <ExternalLink size={14} /></a> : <small>공식 지도는 인터넷 연결 후 열 수 있습니다.</small>}</div></div>
         <p className="section-copy">정확한 거리·혼잡도·가격·입장 조건은 API에서 제공되지 않습니다. 시설 방문 전 공식 안내를 확인하세요.</p><button className="journey-next" type="button" onClick={() => void sync()} disabled={!online || syncing || refreshingFlight}><RefreshCw size={16} /> {syncing || refreshingFlight ? "동기화 중" : "최신 정보 동기화"}</button><p>시설 마지막 동기화 {format(saved.facilitySyncedAt)} · 운항 마지막 동기화 {format(saved.syncedAt)}</p>{!online && <p>인터넷 연결이 없어 동기화할 수 없습니다.</p>}{error && <div className="status-message error" role="alert"><AlertTriangle size={18} /><p>{error} 다시 시도할 수 있습니다.</p></div>}
       </section></div>
