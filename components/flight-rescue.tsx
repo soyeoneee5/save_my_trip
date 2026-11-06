@@ -173,7 +173,7 @@ export function FlightRescue() {
   const [error, setError] = useState<string | null>(null);
   const [emptyMessage, setEmptyMessage] = useState<string | null>(null);
   const [checked, setChecked] = useState<string[]>([]);
-  const [evidenceSituation, setEvidenceSituation] = useState<Situation>(defaultSituation);
+  const [evidenceSituation, setEvidenceSituation] = useState<Situation | null>(null);
   const [lastSuccessAt, setLastSuccessAt] = useState<string | null>(null);
   const [refreshError, setRefreshError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -213,11 +213,7 @@ export function FlightRescue() {
 
   const selected = flights[0] ?? null;
   const stage = STAGE_CONTENT[selected?.stage ?? "check"];
-  const currentSituation = useMemo(() => ({
-    ...evidenceSituation,
-    status: selected && evidenceSituation.status === defaultSituation.status && evidenceSituation.delayMinutes === 0 ? flightStatus(selected) : evidenceSituation.status,
-    delayMinutes: selected && evidenceSituation.status === defaultSituation.status && evidenceSituation.delayMinutes === 0 ? selected.delayMinutes ?? 0 : evidenceSituation.delayMinutes,
-  }), [evidenceSituation, selected]);
+  const currentSituation = useMemo(() => evidenceSituation ?? (selected ? { ...defaultSituation, status: flightStatus(selected), delayMinutes: selected.delayMinutes ?? 0 } : defaultSituation), [evidenceSituation, selected]);
   const evidenceItems = useMemo(() => evidenceForSituation(currentSituation), [currentSituation]);
 
   const refreshFlight = useCallback(async (force = false) => {
