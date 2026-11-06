@@ -1,6 +1,6 @@
 import {describe,it,expect} from "vitest";
 import {applicableItems,defaultSituation,delayBand,mergeItemProgress,resolveFlightConflict} from "@/lib/journey";
-import {parseFacilities,recommendFacilities,safeVisitMinutes} from "@/lib/facilities";
+import {facilityEmptyReason,parseFacilities,recommendFacilities,safeVisitMinutes} from "@/lib/facilities";
 import {createDemoFlight} from "@/lib/demo";
 
 describe("상황별 체크리스트",()=>{
@@ -15,4 +15,6 @@ describe("시설 파싱과 보수적 추천",()=>{const now=new Date("2026-11-03
   it("입력한 왕복 이동시간을 반영하고 시간이 부족하면 제외한다",()=>{const s={...defaultSituation,status:"delayed" as const,delayMinutes:180,location:"airside" as const,preference:"cafe" as const,outboundMinutes:5,returnMinutes:5};expect(safeVisitMinutes(flight,s,now)).toBeGreaterThan(15);expect(recommendFacilities(parsed,flight,s,now)).toHaveLength(1);expect(recommendFacilities(parsed,flight,{...s,outboundMinutes:220,returnMinutes:220},now)).toHaveLength(0);});
   it("출발 40분 전 복귀를 지킬 여유가 없으면 이동시간 미입력 시에도 추천하지 않는다",()=>{const s={...defaultSituation,status:"delayed" as const,location:"airside" as const};expect(recommendFacilities(parsed,{...flight,estimatedDatetime:"202611031055"},s,now)).toHaveLength(0);});
   it("탑승 임박 또는 기내이면 방문 추천을 제한한다",()=>{const s={...defaultSituation,location:"onboard" as const,outboundMinutes:5,returnMinutes:5};expect(recommendFacilities(parsed,flight,s,now)).toHaveLength(0);});
+  it("탑승구에서는 같은 면세구역의 시설을 추천한다",()=>{const s={...defaultSituation,status:"delayed" as const,delayMinutes:180,location:"gate" as const,preference:"cafe" as const};expect(recommendFacilities(parsed,flight,s,now)).toHaveLength(1);});
+  it("시설 정보가 없을 때 실제 이유를 설명한다",()=>{const s={...defaultSituation,location:"gate" as const};expect(facilityEmptyReason([],flight,s)).toContain("시설 정보를 아직 불러오지 못했습니다");expect(facilityEmptyReason(parsed,{...flight,terminalCode:"P03"},s)).toContain("터미널의 시설이 없습니다");});
 });
