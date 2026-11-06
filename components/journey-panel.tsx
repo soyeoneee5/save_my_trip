@@ -145,7 +145,7 @@ export function JourneyPanel({ liveFlight, onSituationChange, onRefreshFlight, r
       <section className="guide-section journey-actions-panel">
         <div className="guide-head"><span className="guide-icon"><CheckCircle2 size={21} /></span><div><p className="section-kicker">Personal checklist</p><h2>2. 맞춤 행동 체크리스트</h2></div></div>
         <p>{active.length}개 항목 · 완료 {active.filter(item => progress[item.id]).length}개 · 이전 단계 완료 기록도 보관</p>
-        {s.location === "onboard" && <p className="journey-alert">기내에서는 승무원 안내를 우선하세요. 인터넷 연결 후 운항정보와 환승편을 다시 확인하세요.</p>}
+        {s.location === "onboard" && <p className="journey-alert">기내에서는 승무원 안내를 우선하세요. 인터넷 연결 후 {s.connection ? "운항정보와 환승편을" : "운항정보를"} 다시 확인하세요.</p>}
         <div className="action-view-bar">
           <span className="action-position" aria-live="polite">{showAllActions ? `전체 ${active.length}개 항목` : active.length ? `${currentActionIndex + 1} / ${active.length}` : "표시할 항목 없음"}</span>
           <button type="button" className="action-view-toggle" onClick={() => setShowAllActions(value => !value)} aria-pressed={showAllActions}>
