@@ -1,5 +1,5 @@
 import {describe,it,expect} from "vitest";
-import {applicableItems,applyManualSituation,defaultSituation,delayBand,immediateItems,mergeItemProgress,resolveFlightConflict} from "@/lib/journey";
+import {applicableItems,applyManualSituation,defaultSituation,delayBand,immediateItems,mergeItemProgress,resolveFlightConflict,situationFromFlight} from "@/lib/journey";
 import {facilityEmptyReason,parseFacilities,recommendFacilities,safeVisitMinutes} from "@/lib/facilities";
 import {createDemoFlight} from "@/lib/demo";
 
@@ -14,6 +14,8 @@ describe("상황별 체크리스트",()=>{
   it("결항과 위탁수하물 항목을 우선하고 완료 기록을 유지한다",()=>{const active=applicableItems({...defaultSituation,status:"cancelled",delayMinutes:120,baggage:true});expect(active[0].id).toBe("cancel-choice");expect(active.some(i=>i.id==="cancel-baggage")).toBe(true);expect(mergeItemProgress({"save-screen":true},active)["save-screen"]).toBe(true);});
   it("환승·보험·이동지원 조건을 반영한다",()=>{const items=applicableItems({...defaultSituation,status:"delayed",delayMinutes:120,connection:true,insurance:true,accessibility:true});expect(items.map(i=>i.id)).toEqual(expect.arrayContaining(["transfer-minimum","insured-proof","support-route"]));});
   it("서버와 수동 입력의 충돌을 표시한다",()=>{const flight=createDemoFlight("delay-3h","departure");expect(resolveFlightConflict(flight,{status:"cancelled",delayMinutes:180}).conflict).toBe(true);});
+  it("새 6시간 지연 데모는 저장된 0분을 덮어쓰고 체크리스트를 갱신한다",()=>{const flight=createDemoFlight("delay-6h","departure");const situation=situationFromFlight({...defaultSituation,delayMinutes:0,status:"normal"},flight);expect(situation.delayMinutes).toBe(360);expect(situation.status).toBe("delayed");expect(applicableItems(situation).some(item=>item.id==="long-proof")).toBe(true);});
+  it("보험 가입자가 실손형을 선택하면 120분부터 서류 준비를 보여준다",()=>{const base={...defaultSituation,status:"delayed" as const,insurance:true,insuranceType:"expense" as const};expect(applicableItems({...base,delayMinutes:119}).some(item=>item.id==="insurance-expense-docs")).toBe(false);expect(applicableItems({...base,delayMinutes:120}).some(item=>item.id==="insurance-expense-docs")).toBe(true);expect(immediateItems({...base,delayMinutes:120}).some(item=>item.id==="insurance-expense-docs")).toBe(true);expect(applicableItems({...base,insuranceType:"index",delayMinutes:120}).some(item=>item.id==="insurance-expense-docs")).toBe(false);});
 });
 describe("시설 파싱과 보수적 추천",()=>{const now=new Date("2026-11-03T01:00:00Z");const flight=createDemoFlight("delay-3h","departure",now);const parsed=parseFacilities({response:{header:{resultCode:"00"},body:{totalCount:2,items:{item:[{sn:"1",facilitynm:"카페",lcategorynm:"카페",terminalid:"G01",floorinfo:"3F",lcduty:"Y",servicetime:"24시간",lcnm:"탑승동"},{sn:"2",facilitynm:"화물식당",lcategorynm:"식당",terminalid:"C01",lcduty:"Y",servicetime:"24시간"}]}}}},now.toISOString()).facilities;
   it("시설 API 필드를 정규화하고 화물터미널을 제외한다",()=>{expect(parsed).toHaveLength(1);expect(parsed[0]).toMatchObject({terminal:"P02",zone:"airside",free:"unknown"});});
